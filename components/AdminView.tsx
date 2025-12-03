@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Settings, Upload, Database, Play, AlertTriangle, Check, RefreshCw, FileSpreadsheet, Info, Package, Plus, Minus, Camera } from 'lucide-react';
+import { Settings, Upload, Database, Play, AlertTriangle, Check, RefreshCw, FileSpreadsheet, Info, Package, Plus, Minus, Camera, FileUp } from 'lucide-react';
 import { SystemPhase, Reward } from '../types';
 import { PHASE_DESCRIPTIONS } from '../constants';
 
@@ -12,6 +12,7 @@ interface AdminViewProps {
   rewards: Reward[];
   onUpdateStock: (id: string, newStock: number) => void;
   onUpdateImage: (id: string, newImage: string) => void;
+  onBulkAddRewards: (rewards: Omit<Reward, 'id'>[]) => void;
   activeTab: string;
 }
 
@@ -24,10 +25,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
   rewards,
   onUpdateStock,
   onUpdateImage,
+  onBulkAddRewards,
   activeTab
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const LOW_STOCK_THRESHOLD = 3;
 
   const handleDrag = (e: React.DragEvent) => {
@@ -66,14 +69,86 @@ export const AdminView: React.FC<AdminViewProps> = ({
     }
   };
 
+  const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        if (!text) return;
+
+        try {
+          const lines = text.split('\n');
+          const newRewards: Omit<Reward, 'id'>[] = [];
+          
+          // Simple heuristic: skip first line if it looks like a header (contains "Name" or "Cost")
+          const startIdx = lines[0].toLowerCase().includes('name') || lines[0].toLowerCase().includes('cost') ? 1 : 0;
+
+          for (let i = startIdx; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            // Assuming simplified CSV: Name, Cost, Stock, ImageURL (optional)
+            // Does not handle commas inside quotes for this simple version
+            const parts = line.split(',');
+            
+            if (parts.length >= 3) {
+              const name = parts[0].trim();
+              const cost = parseInt(parts[1].trim());
+              const stock = parseInt(parts[2].trim());
+              const image = parts[3]?.trim() || 'https://via.placeholder.com/300';
+
+              if (name && !isNaN(cost) && !isNaN(stock)) {
+                newRewards.push({ name, cost, stock, image });
+              }
+            }
+          }
+
+          if (newRewards.length > 0) {
+            onBulkAddRewards(newRewards);
+            // Reset input
+            if (csvInputRef.current) csvInputRef.current.value = '';
+          } else {
+            alert('No valid reward data found in CSV. Format: Name, Cost, Stock, ImageURL');
+          }
+        } catch (error) {
+          console.error("CSV Parse Error", error);
+          alert('Failed to parse CSV file.');
+        }
+      };
+      
+      reader.readAsText(file);
+    }
+  };
+
   const lowStockItems = rewards.filter(r => r.stock < LOW_STOCK_THRESHOLD);
 
   if (activeTab === 'inventory') {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Inventory Management</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage stock levels and images for the reward catalog.</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Inventory Management</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Manage stock levels and images for the reward catalog.</p>
+          </div>
+          <div>
+            <input 
+              ref={csvInputRef}
+              type="file" 
+              accept=".csv" 
+              className="hidden" 
+              onChange={handleCsvImport}
+            />
+            <button
+              onClick={() => csvInputRef.current?.click()}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            >
+              <FileUp size={16} />
+              Import CSV
+            </button>
+            <p className="text-[10px] text-slate-400 text-right mt-1">Format: Name, Cost, Stock, ImageURL</p>
+          </div>
         </div>
 
         {lowStockItems.length > 0 && (

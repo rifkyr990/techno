@@ -183,6 +183,15 @@ function App() {
     ));
   };
 
+  const handleBulkAddRewards = (newRewards: Omit<Reward, 'id'>[]) => {
+    const rewardsWithIds = newRewards.map(r => ({
+      ...r,
+      id: `r-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }));
+    setRewards(prev => [...prev, ...rewardsWithIds]);
+    alert(`${newRewards.length} rewards imported successfully.`);
+  };
+
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
@@ -216,6 +225,7 @@ function App() {
           rewards={rewards}
           onUpdateStock={handleUpdateStock}
           onUpdateImage={handleUpdateRewardImage}
+          onBulkAddRewards={handleBulkAddRewards}
           activeTab={activeTab}
         />
       )}
