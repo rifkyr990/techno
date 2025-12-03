@@ -1,27 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { UserView } from './components/UserView';
 import { AdminView } from './components/AdminView';
+import { Login } from './components/Login';
 import { MOCK_USER, MOCK_REWARDS, MOCK_SLOTS, SPRINT_CONVERSION_RATE } from './constants';
 import { User, UserRole, SystemPhase, Reward, PickupSlot, Grade } from './types';
 
 function App() {
-  // State
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentRole, setCurrentRole] = useState<UserRole>(UserRole.USER);
+
+  // Application Data State
   const [user, setUser] = useState<User>(MOCK_USER);
-  const [currentRole, setCurrentRole] = useState<UserRole>(UserRole.USER); // Controls View Only
   const [systemPhase, setSystemPhase] = useState<SystemPhase>(SystemPhase.ACCUMULATION);
   const [rewards, setRewards] = useState<Reward[]>(MOCK_REWARDS);
   const [slots, setSlots] = useState<PickupSlot[]>(MOCK_SLOTS);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Handlers
-  const handleSwitchRole = () => {
-    const newRole = currentRole === UserRole.USER ? UserRole.ADMIN : UserRole.USER;
-    setCurrentRole(newRole);
-    setActiveTab(newRole === UserRole.USER ? 'dashboard' : 'system');
+  // Theme Effect
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  // Authentication Handlers
+  const handleLogin = (email: string, role: UserRole) => {
+    // In a real app, validation would happen against a backend
+    setCurrentRole(role);
+    setIsAuthenticated(true);
+    
+    // Set initial active tab based on role
+    if (role === UserRole.USER) {
+      setActiveTab('dashboard');
+      // Ensure we are using the MOCK_USER data or fetch specific user data
+      setUser(MOCK_USER); 
+    } else {
+      setActiveTab('system');
+    }
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setActiveTab('dashboard'); // Reset tab
+  };
+
+  // Application Logic Handlers
   const handleUploadSprintData = (sprintName: string) => {
     setIsProcessing(true);
     setTimeout(() => {
@@ -77,7 +108,6 @@ function App() {
 
       // 2. Logic DOWNGRADE (Soft Penalty)
       // If inactive 3 months cumulative -> Grade Down & Tokens -50%
-      // Only apply if Reset didn't happen (or apply both depending on specific business rule interpretation, usually Reset overrides)
       if (!triggered && user.inactiveMonthsCumulative >= 3) {
         const penaltyAmount = Math.floor(user.tokens * -0.5);
         newUser.tokens = user.tokens + penaltyAmount;
@@ -141,12 +171,30 @@ function App() {
     alert("Slot booked successfully! Please bring your ID on Fulfillment Day.");
   };
 
+  const handleUpdateStock = (rewardId: string, newStock: number) => {
+    setRewards(prev => prev.map(r => 
+      r.id === rewardId ? { ...r, stock: Math.max(0, newStock) } : r
+    ));
+  };
+
+  const handleUpdateRewardImage = (rewardId: string, newImage: string) => {
+    setRewards(prev => prev.map(r => 
+      r.id === rewardId ? { ...r, image: newImage } : r
+    ));
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <Layout
       currentRole={currentRole}
-      onSwitchRole={handleSwitchRole}
+      onLogout={handleLogout}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
+      isDarkMode={isDarkMode}
+      toggleDarkMode={toggleDarkMode}
     >
       {currentRole === UserRole.USER ? (
         <UserView
@@ -159,12 +207,16 @@ function App() {
           onBookSlot={handleBookSlot}
         />
       ) : (
-        <AdminView 
+        <AdminView
           currentPhase={systemPhase}
           setSystemPhase={setSystemPhase}
           onUploadSprintData={handleUploadSprintData}
           onRunBatchProcess={handleRunBatchProcess}
           isProcessing={isProcessing}
+          rewards={rewards}
+          onUpdateStock={handleUpdateStock}
+          onUpdateImage={handleUpdateRewardImage}
+          activeTab={activeTab}
         />
       )}
     </Layout>
