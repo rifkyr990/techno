@@ -15,7 +15,7 @@ export const AiPlanner: React.FC<AiPlannerProps> = ({ user, rewards }) => {
     {
       id: 'welcome',
       role: 'model',
-      text: `Hello ${user.name}! I am your AI Strategy Advisor. Tell me which reward you are targeting (e.g., "I want the Sony Headphones"), and I'll calculate the most efficient sprint strategy for you.`,
+      text: `Halo ${user.name}! Saya adalah Berry, asisten loyalitas Anda. Beri tahu saya hadiah mana yang Anda targetkan (misalnya, "Saya ingin Headphone Sony"), dan saya akan menghitung strategi sprint yang paling efisien untuk Anda.`,
       timestamp: Date.now()
     }
   ]);
@@ -59,12 +59,12 @@ export const AiPlanner: React.FC<AiPlannerProps> = ({ user, rewards }) => {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 h-[calc(100vh-8rem)] flex flex-col">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
-        <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+        <div className="w-10 h-10 bg-brand/10 dark:bg-brand/20 rounded-full flex items-center justify-center text-brand">
           <Bot size={24} />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">AI Strategic Planner</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Powered by Gemini 2.5</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Ask Berry</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Strategi Loyalitas AI</p>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export const AiPlanner: React.FC<AiPlannerProps> = ({ user, rewards }) => {
             className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-              msg.role === 'user' ? 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-indigo-600 text-white'
+              msg.role === 'user' ? 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-brand text-white'
             }`}>
               {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
             </div>
@@ -83,23 +83,23 @@ export const AiPlanner: React.FC<AiPlannerProps> = ({ user, rewards }) => {
             <div className={`max-w-[80%] rounded-2xl px-6 py-4 ${
               msg.role === 'user' 
                 ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-tr-none' 
-                : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-100 rounded-tl-none'
+                : 'bg-brand/5 dark:bg-brand/10 text-slate-900 dark:text-slate-100 border border-brand/10 rounded-tl-none'
             }`}>
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
               <span className="text-[10px] opacity-50 mt-2 block">
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(msg.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           </div>
         ))}
         {isLoading && (
           <div className="flex gap-4">
-             <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+             <div className="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center">
               <Bot size={16} />
             </div>
-            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl rounded-tl-none px-6 py-4 flex items-center gap-2">
-              <Loader2 size={16} className="animate-spin text-indigo-600 dark:text-indigo-400" />
-              <span className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Analyzing sprint data...</span>
+            <div className="bg-brand/5 dark:bg-brand/10 rounded-2xl rounded-tl-none px-6 py-4 flex items-center gap-2">
+              <Loader2 size={16} className="animate-spin text-brand" />
+              <span className="text-sm text-brand font-medium">Berry sedang berpikir...</span>
             </div>
           </div>
         )}
@@ -113,14 +113,14 @@ export const AiPlanner: React.FC<AiPlannerProps> = ({ user, rewards }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about rewards (e.g., 'How many sprints for the Monitor?')"
-            className="w-full pl-6 pr-14 py-4 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:text-white rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all placeholder:text-slate-400"
+            placeholder="Tanyakan Berry tentang strategi hadiah Anda..."
+            className="w-full pl-6 pr-14 py-4 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:text-white rounded-xl focus:ring-2 focus:ring-brand focus:outline-none transition-all placeholder:text-slate-400"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="absolute right-2 top-2 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+            className="absolute right-2 top-2 p-2 bg-brand text-white rounded-lg hover:bg-brand-dark disabled:opacity-50 disabled:hover:bg-brand transition-colors"
           >
             <Send size={20} />
           </button>

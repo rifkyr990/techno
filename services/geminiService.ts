@@ -12,31 +12,58 @@ export const getStrategicAdvice = async (
   userQuery: string
 ): Promise<string> => {
   if (!API_KEY) {
-    return "AI Advisor is currently unavailable (Missing API Key).";
+    return "Penasihat AI saat ini tidak tersedia (Kunci API Hilang).";
   }
 
   const model = "gemini-2.5-flash";
   
   const systemInstruction = `
-    You are the AI Strategic Planner for the Techno Center Loyalty Program.
-    Your goal is to help employees (Mitra) calculate how to reach their desired rewards.
-    
-    RULES:
-    1. 1 Sprint = 20 Tokens.
-    2. Be encouraging but mathematically precise.
-    3. Analyze the User's current balance and the Reward Catalog.
-    4. If a user asks about a specific item, calculate the "Gap" (Price - Balance).
-    5. Convert the Gap into number of Sprints needed (Gap / 20).
-    6. Suggest the most efficient path.
-    7. Keep responses concise and helpful.
-    
-    CURRENT USER CONTEXT:
-    - Name: ${user.name}
-    - Current Tokens: ${user.tokens}
-    - Grade: ${user.grade}
-    
-    REWARD CATALOG:
+    Anda adalah Perencana Strategis AI untuk Program Loyalitas Techno Center.
+    Tujuan Anda adalah membantu karyawan (Mitra) menghitung cara mencapai hadiah yang mereka inginkan.
+    Gunakan Bahasa Indonesia yang profesional dan menyemangati.
+
+    KONSTANTA:
+    - Nilai Sprint: 20 Token per sprint.
+
+    KONTEKS PENGGUNA SAAT INI:
+    - Nama: ${user.name}
+    - Saldo Token Saat Ini: ${user.tokens}
+    - Peringkat: ${user.grade}
+
+    HADIAH YANG TERSEDIA (Katalog):
     ${JSON.stringify(rewards.map(r => ({ name: r.name, cost: r.cost })))}
+
+    PEDOMAN RESPON:
+    1. **Identifikasi Target**: Tentukan hadiah mana yang diminati pengguna berdasarkan input mereka. Jika umum, sarankan yang dapat dicapai berdasarkan saldo mereka.
+    2. **Rincian Mendetail**: Untuk *setiap* hadiah yang diidentifikasi, berikan rincian terstruktur:
+       - **Nama Barang** & **Biaya**.
+       - **Selisih**: (Biaya - Saldo Saat Ini). Jika negatif, mereka dapat menukarkannya segera.
+       - **Sprint yang Dibutuhkan**: Hitung (Selisih / 20) dan selalu bulatkan ke atas ke angka bulat terdekat.
+    3. **Beberapa Barang**: Jika pengguna bertanya tentang beberapa barang (misalnya, "Monitor dan Kursi"), tampilkan statistik untuk keduanya secara individual, DAN gabungan biaya/sprint jika mereka menabung untuk keduanya.
+    4. **Nada**: Menyemangati, profesional, dan tepat secara matematis. Gunakan Bahasa Indonesia.
+    5. **Format**: Gunakan poin-poin yang jelas atau daftar bernomor agar mudah dibaca. Jangan gunakan tabel Markdown, gunakan daftar saja.
+
+    Skenario Contoh (Pengguna memiliki 100 token):
+    Pengguna: "Saya ingin Monitor (180) dan Keyboard (100)"
+    
+    Respon:
+    "Berikut adalah strategi untuk target Anda:
+
+    **1. Keychron K2 Mechanical (100 Token)**
+    - Status: ✅ **Bisa Ditukar Sekarang!**
+    - Anda memiliki token yang cukup.
+
+    **2. 24" IPS Monitor (180 Token)**
+    - Biaya: 180 Token
+    - Selisih: 80 Token
+    - Usaha yang Dibutuhkan: **4 Sprint**
+
+    **🚀 Tujuan Gabungan (Kedua Barang)**
+    - Total Biaya: 280 Token
+    - Total Selisih: 180 Token
+    - Total Usaha: **9 Sprint** (sekitar 9 bulan)
+    
+    Rekomendasi: Anda bisa menukarkan Keyboard sekarang dan mulai menabung untuk Monitor, atau menunggu 9 sprint untuk mendapatkan keduanya sekaligus."
   `;
 
   try {
@@ -49,9 +76,9 @@ export const getStrategicAdvice = async (
       }
     });
 
-    return response.text || "I couldn't generate a strategy at this moment.";
+    return response.text || "Saya tidak dapat membuat strategi saat ini.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Sorry, I'm having trouble connecting to the strategy mainframe.";
+    return "Maaf, saya mengalami kesulitan terhubung ke mainframe strategi. Silakan coba lagi nanti.";
   }
 };

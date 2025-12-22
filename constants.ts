@@ -11,10 +11,10 @@ export const MOCK_USER: User = {
   inactiveMonthsCumulative: 2,
   tokenExpiryDate: '2026-12-31',
   history: [
-    { id: 'h-1', date: '2024-01-15', description: 'Sprint Completion (Jan)', change: 20, type: 'EARN' },
-    { id: 'h-2', date: '2024-02-15', description: 'Sprint Completion (Feb)', change: 20, type: 'EARN' },
-    { id: 'h-3', date: '2024-03-01', description: 'Redeemed Mechanical Keyboard', change: -60, type: 'SPEND' },
-    { id: 'h-4', date: '2024-04-15', description: 'Sprint Completion (Apr)', change: 20, type: 'EARN' },
+    { id: 'h-1', date: '2024-01-15', description: 'Penyelesaian Sprint (Jan)', change: 20, type: 'EARN' },
+    { id: 'h-2', date: '2024-02-15', description: 'Penyelesaian Sprint (Feb)', change: 20, type: 'EARN' },
+    { id: 'h-3', date: '2024-03-01', description: 'Menukar Keyboard Mekanikal', change: -60, type: 'SPEND' },
+    { id: 'h-4', date: '2024-04-15', description: 'Penyelesaian Sprint (Apr)', change: 20, type: 'EARN' },
   ]
 };
 
@@ -24,7 +24,7 @@ export const MOCK_REWARDS: Reward[] = [
   { id: 'r-3', name: 'Sony WH-1000XM5', cost: 350, stock: 2, image: 'https://picsum.photos/id/3/300/300' },
   { id: 'r-4', name: '24" IPS Monitor', cost: 180, stock: 4, image: 'https://picsum.photos/id/4/300/300' },
   { id: 'r-5', name: 'Office Ergonomic Chair', cost: 250, stock: 3, image: 'https://picsum.photos/id/5/300/300' },
-  { id: 'r-6', name: 'Shopping Voucher 500k', cost: 25, stock: 50, image: 'https://picsum.photos/id/6/300/300' },
+  { id: 'r-6', name: 'Voucher Belanja 500k', cost: 25, stock: 50, image: 'https://picsum.photos/id/6/300/300' },
 ];
 
 export const MOCK_SLOTS: PickupSlot[] = [
@@ -35,10 +35,10 @@ export const MOCK_SLOTS: PickupSlot[] = [
 ];
 
 export const PHASE_DESCRIPTIONS = {
-  [SystemPhase.ACCUMULATION]: "Routine sprint activity upload. Redemption Locked.",
-  [SystemPhase.JUDGMENT]: "Calculating penalties and grades. System maintenance.",
-  [SystemPhase.REDEEM]: "Redemption period OPEN. Book your rewards now.",
-  [SystemPhase.FULFILLMENT]: "Physical handover of goods. Bring ID.",
+  [SystemPhase.ACCUMULATION]: "Upload aktivitas sprint rutin. Penukaran Terkunci.",
+  [SystemPhase.JUDGMENT]: "Menghitung penalti dan peringkat. Pemeliharaan sistem.",
+  [SystemPhase.REDEEM]: "Periode penukaran DIBUKA. Pesan hadiah Anda sekarang.",
+  [SystemPhase.FULFILLMENT]: "Serah terima barang fisik. Harap membawa Kartu Identitas.",
 };
 
 export const SPRINT_CONVERSION_RATE = 20;

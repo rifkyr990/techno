@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { UserView } from './components/UserView';
 import { AdminView } from './components/AdminView';
 import { Login } from './components/Login';
+import { ToastContainer, Toast, ToastType } from './components/Toast';
 import { MOCK_USER, MOCK_REWARDS, MOCK_SLOTS, SPRINT_CONVERSION_RATE } from './constants';
 import { User, UserRole, SystemPhase, Reward, PickupSlot, Grade } from './types';
 
@@ -19,6 +20,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Theme Effect
   useEffect(() => {
@@ -30,6 +32,16 @@ function App() {
   }, [isDarkMode]);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  // Toast Handler
+  const addToast = (message: string, type: ToastType) => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   // Authentication Handlers
   const handleLogin = (email: string, role: UserRole) => {
@@ -45,11 +57,13 @@ function App() {
     } else {
       setActiveTab('system');
     }
+    addToast(`Selamat datang kembali, ${role === UserRole.USER ? user.name : 'Admin'}!`, 'success');
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setActiveTab('dashboard'); // Reset tab
+    addToast('Berhasil keluar', 'info');
   };
 
   // Application Logic Handlers
@@ -71,7 +85,7 @@ function App() {
           {
             id: `h-${Date.now()}`,
             date: new Date().toISOString(),
-            description: `Sprint Upload: ${sprintName}`,
+            description: `Upload Sprint: ${sprintName}`,
             change: SPRINT_CONVERSION_RATE,
             type: 'EARN'
           },
@@ -80,7 +94,7 @@ function App() {
       }));
       
       setIsProcessing(false);
-      alert(`Successfully processed sprint data. ${user.name} received ${SPRINT_CONVERSION_RATE} tokens.`);
+      addToast(`Memproses ${sprintName}. ${user.name} menerima ${SPRINT_CONVERSION_RATE} token.`, 'success');
     }, 1500);
   };
 
@@ -99,7 +113,7 @@ function App() {
         logs.unshift({
           id: `h-reset-${Date.now()}`,
           date: new Date().toISOString(),
-          description: 'PENALTY: 3 Months Consecutive Inactivity (Reset)',
+          description: 'PENALTI: Tidak Aktif 3 Bulan Berturut-turut (Reset)',
           change: resetAmount,
           type: 'PENALTY'
         });
@@ -122,7 +136,7 @@ function App() {
         logs.unshift({
           id: `h-down-${Date.now()}`,
           date: new Date().toISOString(),
-          description: `PENALTY: Cumulative Inactivity. Downgrade to ${newGrade} & 50% Token Cut`,
+          description: `PENALTI: Akumulasi Inaktivitas. Turun ke ${newGrade} & Potongan Token 50%`,
           change: penaltyAmount,
           type: 'PENALTY'
         });
@@ -130,10 +144,10 @@ function App() {
       }
 
       if (!triggered) {
-        alert("Batch process completed. No penalties applicable for this user.");
+        addToast("Proses batch selesai. Tidak ada penalti yang berlaku.", 'success');
       } else {
         setUser({ ...newUser, history: logs });
-        alert("Batch process completed. Penalties applied.");
+        addToast("Proses batch selesai. Penalti diterapkan.", 'warning');
       }
       
       setIsProcessing(false);
@@ -141,7 +155,10 @@ function App() {
   };
 
   const handleRedeem = (reward: Reward) => {
-    if (user.tokens < reward.cost) return;
+    if (user.tokens < reward.cost) {
+      addToast("Token tidak cukup untuk menukarkan hadiah ini.", 'error');
+      return;
+    }
 
     setUser(prev => ({
       ...prev,
@@ -150,7 +167,7 @@ function App() {
         {
           id: `h-redeem-${Date.now()}`,
           date: new Date().toISOString(),
-          description: `Redeemed: ${reward.name}`,
+          description: `Menukar: ${reward.name}`,
           change: -reward.cost,
           type: 'SPEND'
         },
@@ -162,25 +179,30 @@ function App() {
     setRewards(prev => prev.map(r => 
       r.id === reward.id ? { ...r, stock: r.stock - 1 } : r
     ));
+
+    addToast(`Berhasil menukar ${reward.name}!`, 'success');
   };
 
   const handleBookSlot = (slotId: string) => {
     setSlots(prev => prev.map(slot => 
       slot.id === slotId ? { ...slot, booked: slot.booked + 1 } : slot
     ));
-    alert("Slot booked successfully! Please bring your ID on Fulfillment Day.");
+    addToast("Slot berhasil dipesan! Harap membawa Kartu Identitas pada Hari Pengambilan.", 'success');
   };
 
   const handleUpdateStock = (rewardId: string, newStock: number) => {
     setRewards(prev => prev.map(r => 
       r.id === rewardId ? { ...r, stock: Math.max(0, newStock) } : r
     ));
+    // Optional: Subtle toast or just UI update. Let's keep it silent or add a small one.
+    // addToast("Stock updated", "info"); 
   };
 
   const handleUpdateRewardImage = (rewardId: string, newImage: string) => {
     setRewards(prev => prev.map(r => 
       r.id === rewardId ? { ...r, image: newImage } : r
     ));
+    addToast("Gambar produk diperbarui", 'success');
   };
 
   const handleBulkAddRewards = (newRewards: Omit<Reward, 'id'>[]) => {
@@ -189,47 +211,57 @@ function App() {
       id: `r-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }));
     setRewards(prev => [...prev, ...rewardsWithIds]);
-    alert(`${newRewards.length} rewards imported successfully.`);
+    addToast(`${newRewards.length} hadiah berhasil diimpor.`, 'success');
   };
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <>
+        <Login onLogin={handleLogin} />
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
+      </>
+    );
   }
 
   return (
-    <Layout
-      currentRole={currentRole}
-      onLogout={handleLogout}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      isDarkMode={isDarkMode}
-      toggleDarkMode={toggleDarkMode}
-    >
-      {currentRole === UserRole.USER ? (
-        <UserView
-          user={user}
-          activeTab={activeTab}
-          systemPhase={systemPhase}
-          rewards={rewards}
-          slots={slots}
-          onRedeem={handleRedeem}
-          onBookSlot={handleBookSlot}
-        />
-      ) : (
-        <AdminView
-          currentPhase={systemPhase}
-          setSystemPhase={setSystemPhase}
-          onUploadSprintData={handleUploadSprintData}
-          onRunBatchProcess={handleRunBatchProcess}
-          isProcessing={isProcessing}
-          rewards={rewards}
-          onUpdateStock={handleUpdateStock}
-          onUpdateImage={handleUpdateRewardImage}
-          onBulkAddRewards={handleBulkAddRewards}
-          activeTab={activeTab}
-        />
-      )}
-    </Layout>
+    <>
+      <Layout
+        user={user}
+        currentRole={currentRole}
+        onLogout={handleLogout}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+      >
+        {currentRole === UserRole.USER ? (
+          <UserView
+            user={user}
+            activeTab={activeTab}
+            systemPhase={systemPhase}
+            rewards={rewards}
+            slots={slots}
+            onRedeem={handleRedeem}
+            onBookSlot={handleBookSlot}
+          />
+        ) : (
+          <AdminView
+            currentPhase={systemPhase}
+            setSystemPhase={setSystemPhase}
+            onUploadSprintData={handleUploadSprintData}
+            onRunBatchProcess={handleRunBatchProcess}
+            isProcessing={isProcessing}
+            rewards={rewards}
+            onUpdateStock={handleUpdateStock}
+            onUpdateImage={handleUpdateRewardImage}
+            onBulkAddRewards={handleBulkAddRewards}
+            activeTab={activeTab}
+            onShowToast={addToast}
+          />
+        )}
+      </Layout>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </>
   );
 }
 

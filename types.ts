@@ -10,10 +10,10 @@ export enum Grade {
 }
 
 export enum SystemPhase {
-  ACCUMULATION = 'Monthly Routine (Accumulation)',
-  JUDGMENT = 'Judgment Day (Cut-Off)',
-  REDEEM = 'Redeem Day (Penukaran)',
-  FULFILLMENT = 'Fulfillment Day (Pengambilan)',
+  ACCUMULATION = 'Rutin Bulanan (Akumulasi)',
+  JUDGMENT = 'Hari Penghakiman (Cut-Off)',
+  REDEEM = 'Hari Penukaran (Redeem)',
+  FULFILLMENT = 'Hari Pengambilan (Fulfillment)',
 }
 
 export interface User {
